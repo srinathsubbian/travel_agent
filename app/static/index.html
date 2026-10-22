@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Business Trip Itinerary Optimizer</title>
+<style>
+:root{color-scheme:light dark;--bg:#F3F5F9;--surface:#FFFFFF;--ink:#14213D;--muted:#5B6780;--line:#D9DFEA;--accent:#2F5BEA;--accent-ink:#FFFFFF;--soft:#E8EEFD;--good:#1B7F55;--good-bg:#E3F4EC;--warn:#A65F00;--warn-bg:#FFF1D6;--bad:#B42318}
+@media (prefers-color-scheme:dark){:root{--bg:#0E1424;--surface:#17203A;--ink:#E8ECF6;--muted:#9AA6C0;--line:#2A3556;--accent:#7C9BFF;--accent-ink:#0E1424;--soft:#1F2C54;--good:#55D79C;--good-bg:#133A2B;--warn:#F2B24C;--warn-bg:#3A2C10;--bad:#FF8A7A}}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 56px}
+h1{font-size:clamp(26px,5vw,38px);line-height:1.1;margin:0 0 6px;letter-spacing:-.02em}
+h2{font-size:19px;margin:0 0 10px}
+.lede{color:var(--muted);margin:0 0 6px;max-width:62ch}
+.status{font-size:13px;color:var(--muted);margin-bottom:16px}
+.layout{display:grid;gap:16px;margin-top:16px}
+@media (min-width:880px){.layout{grid-template-columns:320px 1fr;align-items:start}.panel{position:sticky;top:16px}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+.field{margin-bottom:14px}
+label,.lbl{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
+select,input,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:44px}
+textarea{min-height:70px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:8px 12px;min-height:40px;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--soft);border-color:var(--accent);font-weight:600}
+.chip .n{display:inline-block;min-width:18px;height:18px;border-radius:9px;background:var(--accent);color:var(--accent-ink);font-size:12px;line-height:18px;text-align:center;margin-right:6px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{font:inherit;font-size:14px;border:0;background:var(--bg);color:var(--ink);padding:10px 4px;min-height:44px;cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.help,.meta{font-size:13px;color:var(--muted)}
+.banner{border-radius:14px;padding:16px;background:var(--good-bg);border:1px solid var(--good)}
+.banner.mixed{background:var(--warn-bg);border-color:var(--warn)}
+.figs{display:flex;gap:28px;flex-wrap:wrap}
+.fig{font-size:clamp(30px,8vw,42px);font-weight:700;line-height:1;letter-spacing:-.02em}
+.fig small{display:block;font-size:13px;font-weight:500;color:var(--muted);letter-spacing:0;margin-top:4px}
+.pos{color:var(--good)}.neg{color:var(--bad)}
+.cmp{font-size:14px;color:var(--muted);margin:12px 0 0}
+.opts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.opt{font:inherit;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;padding:10px;cursor:pointer;min-height:64px}
+.opt[aria-pressed=true]{border-color:var(--accent);background:var(--soft)}
+.opt b{display:block;font-size:14px}.opt span{font-size:13px;color:var(--muted)}
+.why{border-left:4px solid var(--accent);border-radius:4px 14px 14px 4px}
+.why p{margin:0 0 8px}.why p:last-child{margin:0}
+.tag{display:inline-block;font-size:12px;font-weight:600;border-radius:6px;padding:2px 7px;background:var(--soft);margin-left:6px;vertical-align:middle}
+.tag.warn{background:var(--warn-bg);color:var(--warn)}
+.list{display:grid;gap:10px;margin:14px 0}
+.stop,.ret{display:grid;grid-template-columns:auto 1fr;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}
+.stop.dragging{border-color:var(--accent);box-shadow:0 8px 24px rgba(20,33,61,.25)}
+.grip{width:40px;min-height:44px;border:0;background:var(--bg);color:var(--muted);border-radius:10px;cursor:grab;touch-action:none;font-size:18px}
+.mv{display:flex;flex-direction:column;gap:6px;align-items:center}
+.mv button.s{width:40px;height:28px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;cursor:pointer;font-size:12px}
+.mv button:disabled{opacity:.4;cursor:default}
+.city{font-weight:600;font-size:17px}
+.line{display:flex;justify-content:space-between;gap:10px;font-size:14px;margin-top:6px}
+.line span:last-child{font-variant-numeric:tabular-nums;white-space:nowrap}
+.tot{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.tot div{background:var(--bg);border-radius:10px;padding:10px}
+.tot b{display:block;font-size:18px;font-variant-numeric:tabular-nums}.tot span{font-size:13px;color:var(--muted)}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.btn{font:inherit;font-weight:600;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:10px 16px;min-height:44px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn:disabled{opacity:.5;cursor:default}
+.err{border:1px solid var(--bad);background:var(--warn-bg);color:var(--ink);border-radius:14px;padding:14px;white-space:pre-wrap}
+.empty{text-align:center;color:var(--muted);padding:32px 16px}
+.reply{margin-top:10px;white-space:pre-wrap}
+dialog{width:min(600px,calc(100vw - 24px));border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);padding:16px}
+dialog::backdrop{background:rgba(10,15,30,.6)}
+dialog textarea{height:260px;font:12px/1.4 ui-monospace,Menlo,Consolas,monospace}
+.busy{opacity:.55;transition:opacity .15s}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Plan the trip once, in the best order</h1>
+  <p class="lede">Pick the cities you need to visit. The planner prices every visiting order and shows what you save against the order you listed them.</p>
+  <div class="status" id="status">Connecting...</div>
+
+  <section class="card" aria-label="Plan with plain English">
+    <label for="chatIn">Or describe the trip in plain English</label>
+    <textarea id="chatIn" placeholder="Plan a trip from NYC to Seattle, Denver and Boston starting Nov 2, cheapest, no early flights"></textarea>
+    <div class="acts"><button class="btn" id="chatGo" type="button">Plan it</button><span class="meta" id="chatNote"></span></div>
+    <div class="reply" id="chatOut" aria-live="polite"></div>
+  </section>
+
+  <div class="layout">
+    <section class="card panel" aria-label="Trip details">
+      <div class="field"><label for="origin">Starting city</label><select id="origin"></select></div>
+      <div class="field"><span class="lbl" id="stopsLbl">Cities to visit, in the order you would book them</span><div class="chips" id="chips" role="group" aria-labelledby="stopsLbl"></div><div class="help">Up to 6 cities. Numbers show your original order.</div></div>
+      <div class="row2">
+        <div class="field"><label for="start">Leave on</label><input type="date" id="start"></div>
+        <div class="field"><label for="nights">Nights per city</label><select id="nights"></select></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="cap">Hotel cap / night ($)</label><input type="number" id="cap" min="50" max="1000" step="10"></div>
+        <div class="field"><label for="earliest">No flights before</label><select id="earliest"></select></div>
+      </div>
+      <div class="field"><label for="pref">Preferred airline (optional)</label><input id="pref" placeholder="e.g. Meridian Air"></div>
+      <div class="field"><label for="avoid">Airlines to avoid (comma separated)</label><input id="avoid" placeholder="e.g. Northline"></div>
+      <div class="field" style="margin-bottom:0"><span class="lbl" id="modeLbl">What matters most</span>
+        <div class="seg" id="mode" role="group" aria-labelledby="modeLbl">
+          <button type="button" data-m="cost" aria-pressed="false">Lowest cost</button>
+          <button type="button" data-m="balanced" aria-pressed="true">Balanced</button>
+          <button type="button" data-m="fast" aria-pressed="false">Fastest</button>
+        </div>
+      </div>
+    </section>
+    <main id="out" aria-live="polite"></main>
+  </div>
+</div>
+
+<dialog id="dlg"><h2>Booking request</h2><textarea id="exp" readonly aria-label="Booking request JSON"></textarea>
+  <div class="acts"><button class="btn" id="copy" type="button">Copy</button><button class="btn ghost" id="close" type="button">Close</button><span class="meta" id="copied"></span></div></dialog>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=n=>(n<0?'-':'')+'$'+Math.abs(Math.round(n)).toLocaleString('en-US');
+const dur=m=>{m=Math.abs(Math.round(m));return Math.floor(m/60)+'h '+String(m%60).padStart(2,'0')+'m'};
+const clock=m=>{const x=((m%1440)+1440)%1440;return String(Math.floor(x/60)).padStart(2,'0')+':'+String(x%60).padStart(2,'0')};
+const isoIn=d=>{const x=new Date();x.setDate(x.getDate()+d);return x.toISOString().slice(0,10)};
+
+let CITIES={};
+const S={origin:'NYC',stops:['SFO','BOS','SEA','ATL'],start:isoIn(14),nights:2,cap:250,pref:'',avoid:'',earliest:0,mode:'balanced',
+  res:null,sel:0,order:[],plan:null,custom:false,vote:null,err:'',busy:false,llm:false};
+let seq=0,timer=null;
+const nm=c=>CITIES[c]||c;
+
+async function api(path,body){
+  const r=await fetch(path,{method:body===undefined?'GET':'POST',headers:{'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});
+  if(!r.ok){let msg='Request failed ('+r.status+')';
+    try{const j=await r.json();const d=j.detail;msg=Array.isArray(d)?d.map(e=>(e.loc||[]).slice(1).join('.')+': '+e.msg).join('\n'):(d||msg)}catch(_){}
+    throw new Error(msg)}
+  return r.json();
+}
+const tripBody=()=>({origin:S.origin,stops:S.stops,start_date:S.start,nights_per_stop:+S.nights,hotel_cap:+S.cap||250,
+  preferred_airline:S.pref.trim()||null,avoid_airlines:S.avoid.split(',').map(x=>x.trim()).filter(Boolean),
+  earliest_departure_hour:+S.earliest,priority:S.mode});
+
+function schedule(){clearTimeout(timer);timer=setTimeout(run,300)}
+async function run(){
+  if(!S.stops.length){S.res=null;S.err='';render();return}
+  const my=++seq;S.busy=true;S.err='';render();
+  try{const res=await api('/optimize',tripBody());if(my!==seq)return;
+    S.res=res;S.sel=0;S.order=res.options[0].order;S.plan=res.options[0];S.custom=false;S.vote=null}
+  catch(e){if(my!==seq)return;S.err=e.message;S.res=null}
+  S.busy=false;render();
+}
+async function reprice(order){
+  const my=++seq;S.order=order;S.custom=true;S.vote=null;S.busy=true;render();
+  try{const p=await api('/reprice',{trip:S.res.trip,order});if(my!==seq)return;S.plan=p;S.err=''}
+  catch(e){if(my!==seq)return;S.err=e.message}
+  S.busy=false;render();
+}
+
+function render(){
+  const out=$('out');
+  if(S.err&&!S.res){out.innerHTML=`<div class="err">${esc(S.err)}</div>`;return}
+  if(!S.res){out.innerHTML=`<div class="card empty">${S.busy?'Searching fares...':'Pick one or more cities to visit and the planner will build your trip.'}</div>`;return}
+  const r=S.res,p=S.plan,b=r.baseline,best=r.options[0];
+  const dc=b.total_cost-p.total_cost,dm=b.total_minutes-p.total_minutes,same=Math.abs(dc)<1&&Math.abs(dm)<1,mixed=!same&&(dc<0||dm<0);
+  const pct=b.total_cost?Math.abs(dc/b.total_cost*100).toFixed(1):'0';
+  const route=(it)=>[r.trip.origin,...it.order,r.trip.origin].join(' > ');
+  let h=`<div class="${S.busy?'busy':''}">`;
+  if(S.err)h+=`<div class="err" style="margin-bottom:12px">${esc(S.err)}</div>`;
+  h+=`<section class="banner${mixed?' mixed':''}"><h2>${same?'Same cost and time as your original order':'Compared with your original order'}</h2>`+
+    (same?'':`<div class="figs"><div class="fig ${dc>=0?'pos':'neg'}">${dc>=0?'-':'+'}${money(Math.abs(dc))}<small>${dc>=0?'saved':'extra'} (${pct}%)</small></div><div class="fig ${dm>=0?'pos':'neg'}">${dm>=0?'-':'+'}${dur(dm)}<small>${dm>=0?'less':'more'} time in the air</small></div></div>`)+
+    `<p class="cmp">Your order: ${esc(route(b))}, ${money(b.total_cost)}, ${dur(b.total_minutes)} flying.<br>This plan: ${esc(route(p))}, ${money(p.total_cost)}, ${dur(p.total_minutes)} flying.<br>Data source: ${esc(r.data_source)}</p></section>`;
+  h+=`<div class="opts" role="group" aria-label="Ranked options">`+r.options.map((o,i)=>`<button class="opt" data-i="${i}" aria-pressed="${!S.custom&&S.sel===i}"><b>Option ${i+1}${i===0?' (best)':''}</b><span>${money(o.total_cost)} · ${dur(o.total_minutes)}</span></button>`).join('')+`</div>`;
+  let why;
+  if(S.custom){const c=p.total_cost-best.total_cost,t=p.total_minutes-best.total_minutes;
+    why=`<p>You changed the order. Prices are recalculated by the server: this version is ${money(Math.abs(c))} ${c>=0?'more':'less'} and ${dur(t)} ${t>=0?'longer':'shorter'} than the best option.</p>`}
+  else if(S.sel===0)why=`<p>${esc(r.explanation)}</p>`;
+  else{const c=p.total_cost-best.total_cost,t=p.total_minutes-best.total_minutes;
+    why=`<p>This is the ${S.sel+1}${S.sel===1?'nd':'rd'} ranked option: ${money(Math.abs(c))} ${c>=0?'more':'less'} and ${dur(t)} ${t>=0?'longer':'shorter'} than the best. Select Option 1 for the full explanation.</p>`}
+  h+=`<section class="card why"><h2>Why this route${S.custom?'<span class="tag warn">Custom order</span>':''}</h2>${why}</section>`;
+  h+=`<div class="list" id="list" aria-label="Stops. Drag the handle or use the buttons to reorder.">`+p.stays.map((t,i)=>{const l=t.inbound;
+    return `<article class="stop" data-code="${esc(t.city)}"><div class="mv"><button class="grip" aria-label="Drag ${esc(nm(t.city))} to reorder" title="Drag to reorder">&#8942;&#8942;</button><button class="s" data-mv="-1" data-i="${i}" aria-label="Move ${esc(nm(t.city))} earlier" ${i===0?'disabled':''}>Up</button><button class="s" data-mv="1" data-i="${i}" aria-label="Move ${esc(nm(t.city))} later" ${i===p.stays.length-1?'disabled':''}>Down</button></div>
+    <div><div class="city">${esc(nm(t.city))}${t.over_policy?'<span class="tag warn">Over hotel cap</span>':''}</div><div class="meta">${esc(t.check_in)} · ${t.nights} nights</div>
+    <div class="line"><span>${esc(l.airline)} from ${esc(nm(l.from_code))}, departs ${clock(l.depart_min)}, ${dur(l.duration_min)}</span><span>${money(l.price)}</span></div>
+    <div class="line"><span>${esc(t.hotel.name)}, ${money(t.hotel.nightly_rate)} per night</span><span>${money(t.hotel.nightly_rate*t.nights)}</span></div>
+    <div class="line"><span>Ground transport</span><span>${money(t.ground_cost)}</span></div></div></article>`}).join('');
+  const rl=p.legs[p.legs.length-1];
+  h+=`<article class="ret"><div class="meta" style="align-self:center">Home</div><div><div class="city">Return to ${esc(nm(rl.to_code))}</div><div class="line"><span>${esc(rl.airline)}, ${esc(rl.day)}, departs ${clock(rl.depart_min)}, ${dur(rl.duration_min)}</span><span>${money(rl.price)}</span></div></div></article></div>`;
+  h+=`<section class="card"><div class="tot"><div><b>${money(p.flights_cost)}</b><span>Flights</span></div><div><b>${money(p.hotels_cost)}</b><span>Hotels</span></div><div><b>${money(p.ground_cost)}</b><span>Ground</span></div><div><b>${money(p.total_cost)}</b><span>Total</span></div><div><b>${dur(p.total_minutes)}</b><span>In the air</span></div></div>
+    <div class="acts"><button class="btn" id="exCal">Download calendar (.ics)</button><button class="btn ghost" id="exBook">Booking request</button></div>
+    <div class="acts"><span class="meta">Was this itinerary useful?</span><button class="chip" data-v="up" aria-pressed="${S.vote==='up'}">Yes</button><button class="chip" data-v="down" aria-pressed="${S.vote==='down'}">Not really</button><span class="meta">${S.vote?'Thanks, feedback saved.':''}</span></div></section></div>`;
+  out.innerHTML=h;initDrag();
+}
+
+function initDrag(){
+  const list=$('list');if(!list)return;
+  list.querySelectorAll('.grip').forEach(g=>g.addEventListener('pointerdown',e=>{
+    e.preventDefault();const item=g.closest('.stop');item.classList.add('dragging');
+    const move=ev=>{const items=[...list.querySelectorAll('.stop:not(.dragging)')];let before=null;
+      for(const it of items){const r=it.getBoundingClientRect();if(ev.clientY<r.top+r.height/2){before=it;break}}
+      before?list.insertBefore(item,before):list.insertBefore(item,list.querySelector('.ret'))};
+    const up=()=>{removeEventListener('pointermove',move);removeEventListener('pointerup',up);removeEventListener('pointercancel',up);
+      item.classList.remove('dragging');const o=[...list.querySelectorAll('.stop')].map(s=>s.dataset.code);
+      o.join()!==S.order.join()?reprice(o):render()};
+    addEventListener('pointermove',move);addEventListener('pointerup',up);addEventListener('pointercancel',up);
+  }));
+}
+
+function drawChips(){
+  $('chips').innerHTML=Object.entries(CITIES).filter(([k])=>k!==S.origin).map(([k,n])=>{const i=S.stops.indexOf(k);
+    return `<button type="button" class="chip" data-c="${esc(k)}" aria-pressed="${i>=0}">${i>=0?`<span class="n">${i+1}</span>`:''}${esc(n)}</button>`}).join('');
+}
+function fillForm(){
+  $('origin').innerHTML=Object.entries(CITIES).map(([k,n])=>`<option value="${esc(k)}">${esc(n)}</option>`).join('');
+  $('origin').value=S.origin;$('start').value=S.start;$('nights').value=S.nights;$('cap').value=S.cap;$('earliest').value=S.earliest;
+  $('pref').value=S.pref;$('avoid').value=S.avoid;
+  document.querySelectorAll('#mode button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.m===S.mode));drawChips();
+}
+$('nights').innerHTML=[1,2,3,4,5,6,7].map(n=>`<option>${n}</option>`).join('');
+$('earliest').innerHTML='<option value="0">Any time</option>'+[6,7,8,9,10,12].map(h=>`<option value="${h}">${String(h).padStart(2,'0')}:00</option>`).join('');
+
+$('origin').onchange=e=>{S.origin=e.target.value;S.stops=S.stops.filter(c=>c!==S.origin);drawChips();schedule()};
+$('chips').onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;const c=b.dataset.c,i=S.stops.indexOf(c);
+  if(i>=0)S.stops.splice(i,1);else if(S.stops.length<6)S.stops.push(c);drawChips();schedule()};
+$('start').onchange=e=>{if(e.target.value){S.start=e.target.value;schedule()}};
+$('nights').onchange=e=>{S.nights=e.target.value;schedule()};
+$('cap').onchange=e=>{S.cap=e.target.value;schedule()};
+$('earliest').onchange=e=>{S.earliest=e.target.value;schedule()};
+$('pref').onchange=e=>{S.pref=e.target.value;schedule()};
+$('avoid').onchange=e=>{S.avoid=e.target.value;schedule()};
+$('mode').onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;S.mode=b.dataset.m;
+  document.querySelectorAll('#mode button').forEach(x=>x.setAttribute('aria-pressed',x===b));schedule()};
+
+$('out').onclick=async e=>{
+  const o=e.target.closest('.opt');if(o){S.sel=+o.dataset.i;S.order=S.res.options[S.sel].order;S.plan=S.res.options[S.sel];S.custom=false;render();return}
+  const m=e.target.closest('[data-mv]');if(m){const i=+m.dataset.i,j=i+ +m.dataset.mv,a=[...S.order];[a[i],a[j]]=[a[j],a[i]];reprice(a);return}
+  const v=e.target.closest('[data-v]');if(v){S.vote=v.dataset.v;render();
+    try{await api('/feedback',{vote:S.vote,order:S.order,comment:''})}catch(_){}return}
+  if(e.target.id==='exCal'){
+    try{const r=await fetch('/export/ics',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({trip:S.res.trip,order:S.order})});
+      if(!r.ok)throw new Error('Export failed');const a=document.createElement('a');a.href=URL.createObjectURL(await r.blob());a.download='trip.ics';document.body.appendChild(a);a.click();a.remove()}
+    catch(err){S.err=err.message;render()}}
+  if(e.target.id==='exBook'){
+    try{$('exp').value=JSON.stringify(await api('/export/booking',{trip:S.res.trip,order:S.order}),null,2);$('copied').textContent='';$('dlg').showModal()}
+    catch(err){S.err=err.message;render()}}
+};
+$('close').onclick=()=>$('dlg').close();
+$('copy').onclick=async()=>{const t=$('exp');try{await navigator.clipboard.writeText(t.value);$('copied').textContent='Copied'}catch(_){t.select();$('copied').textContent='Press Ctrl+C to copy'}};
+
+$('chatGo').onclick=async()=>{
+  const msg=$('chatIn').value.trim();if(!msg)return;
+  $('chatGo').disabled=true;$('chatOut').textContent='Thinking...';
+  try{const r=await api('/agent/chat',{message:msg});$('chatOut').textContent=r.reply||'';
+    if(r.result){const t=r.result.trip;Object.assign(S,{origin:t.origin,stops:t.stops,start:t.start_date,nights:t.nights_per_stop,cap:t.hotel_cap,
+        pref:t.preferred_airline||'',avoid:(t.avoid_airlines||[]).join(', '),earliest:t.earliest_departure_hour,mode:t.priority,
+        res:r.result,sel:0,order:r.result.options[0].order,plan:r.result.options[0],custom:false,vote:null,err:''});fillForm();render()}}
+  catch(e){$('chatOut').textContent='Could not plan that: '+e.message}
+  $('chatGo').disabled=false;
+};
+
+(async function init(){
+  try{CITIES=await api('/cities')}catch(e){$('status').textContent='Cannot reach the API: '+e.message;return}
+  fillForm();
+  try{const h=await api('/health');S.llm=h.llm_enabled;
+    $('status').textContent=`Data: ${h.data_provider} · LLM: ${h.llm_enabled?h.llm_provider+' (on)':'off, template explanations'}`;
+    if(!h.llm_enabled){$('chatGo').disabled=true;$('chatNote').textContent='Set an LLM key or endpoint in .env to turn this on.'}}
+  catch(_){}
+  run();
+})();
+</script>
+</body>
+</html>

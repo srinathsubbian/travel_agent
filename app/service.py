@@ -15,7 +15,7 @@ def run_optimize(req: TripRequest, settings: Settings, top_k: int = 3) -> Optimi
     baseline, best = planner.baseline, options[0]
     baseline.score = planner.score(baseline)
     return OptimizeResult(
-        baseline=baseline, options=options, savings=compute_savings(baseline, best),
+        trip=req, baseline=baseline, options=options, savings=compute_savings(baseline, best),
         explanation=explain(req, baseline, best, settings), data_source=provider.name,
     )
 

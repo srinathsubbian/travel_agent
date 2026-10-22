@@ -100,6 +100,7 @@ class Savings(BaseModel):
 
 
 class OptimizeResult(BaseModel):
+    trip: TripRequest
     baseline: Itinerary
     options: list[Itinerary]
     savings: Savings

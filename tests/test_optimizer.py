@@ -117,3 +117,13 @@ def test_feedback_and_agent_without_key(tmp_path, monkeypatch):
     assert (tmp_path / "fb.jsonl").read_text().count("\n") == 1
     assert "API_KEY" in client.post("/agent/chat", json={"message": "plan a trip"}).json()["reply"]
     assert client.get("/health").json()["status"] == "ok"
+
+
+def test_root_serves_web_app():
+    r = client.get("/")
+    assert r.status_code == 200 and "text/html" in r.headers["content-type"] and "Itinerary" in r.text
+    assert client.get("/docs").status_code == 200
+
+
+def test_optimize_returns_trip_for_repricing():
+    assert client.post("/optimize", json=BODY).json()["trip"]["stops"] == BODY["stops"]

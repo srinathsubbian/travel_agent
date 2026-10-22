@@ -16,8 +16,8 @@ python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env          # optional: add OPENAI_API_KEY (or ANTHROPIC_API_KEY), Amadeus keys
 python -m app.diagnose        # checks packages, keys and the optimizer
-pytest                        # 20 tests, no network or keys needed
-uvicorn app.main:app --reload # docs at http://localhost:8000/docs
+pytest                        # 22 tests, no network or keys needed
+uvicorn app.main:app --reload # web app at http://localhost:8000/  (API docs at /docs)
 ```
 
 Works out of the box with synthetic fares and template explanations. Set `OPENAI_API_KEY` (model via
@@ -63,7 +63,8 @@ curl -X POST localhost:8000/agent/chat -H 'content-type: application/json' \
 
 ```
 app/
-  main.py            REST API
+  main.py            REST API + serves the web app at /
+  static/index.html  Web app (form, ranked options, savings, drag-and-drop with live repricing, exports, chat)
   agent.py           Tool-calling loop (OpenAI or Anthropic) around the optimize_trip tool
   optimizer.py       Candidate orderings, leg selection, scoring, savings
   llm.py             OpenAI / Anthropic switch

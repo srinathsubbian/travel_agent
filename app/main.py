@@ -7,7 +7,9 @@ import time
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse
+from pathlib import Path
+
+from fastapi.responses import FileResponse, PlainTextResponse
 
 from .agent import run_agent
 from .calendar_export import to_booking_request, to_ics
@@ -26,6 +28,12 @@ def _guard(fn, *args):
         return fn(*args)
     except LookupError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
+
+
+@app.get("/", include_in_schema=False)
+def root():
+    """The web app. API docs stay at /docs."""
+    return FileResponse(Path(__file__).parent / "static" / "index.html")
 
 
 @app.get("/health")
